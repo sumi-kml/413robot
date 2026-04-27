@@ -65,3 +65,12 @@ void loop() {
     updateLeg(legs[i]);
   }
 }
+
+//2:16: error: variable or field 'updateLeg' declared void
+
+
+//2:16: error: 'Leg' was not declared in this scope
+//2:21: error: 'leg' was not declared in this scope
+
+
+//2:21: note: suggested alternative: 'log'
