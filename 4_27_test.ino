@@ -66,4 +66,14 @@ void loop() {
   for (int i = 0; i < 4; i++) {
     updateLeg(legs[i]);
   }
+
+  /*1:16: error: variable or field 'updateLeg' declared void
+
+
+1:16: error: 'Leg' was not declared in this scope
+1:21: error: 'leg' was not declared in this scope
+
+
+1:21: note: suggested alternative: 'log'
+  */
 }
