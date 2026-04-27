@@ -1,8 +1,9 @@
 #include <Servo.h>
 
-// Define states for the gait cycle
+// 1. Define states first
 enum State { PUSH, LIFT, FORWARD, PUT_DOWN };
 
+// 2. Define the Leg structure BEFORE any functions use it
 struct Leg {
   Servo upper;
   Servo lower;
@@ -13,7 +14,7 @@ struct Leg {
   int speed; // Delay in ms per degree
 };
 
-// Initialize legs
+// 3. Global variable for legs
 Leg legs[4] = {
   {Servo(), Servo(), PUSH, 15, 0, 15, 60, 0, 45}, // Front Left
   {Servo(), Servo(), PUSH, 15, 0, 15, 60, 0, 45}, // Front Right
@@ -21,14 +22,7 @@ Leg legs[4] = {
   {Servo(), Servo(), PUSH, 15, 0, 15, 60, 0, 45}  // Back Right
 };
 
-void setup() {
-  // Attach servos (Pin assignments based on your first snippet)
-  legs[0].upper.attach(13); legs[0].lower.attach(12);
-  legs[1].upper.attach(11); legs[1].lower.attach(10);
-  legs[2].upper.attach(9);  legs[2].lower.attach(8);
-  legs[3].upper.attach(7);  legs[3].lower.attach(6);
-}
-
+// 4. Now define the function that uses 'Leg'
 void updateLeg(Leg &leg) {
   unsigned long now = millis();
   
@@ -38,7 +32,7 @@ void updateLeg(Leg &leg) {
     switch (leg.currentState) {
       case PUSH: // Lower servo 0 -> 60
         if (leg.currentLower < 60) { leg.currentLower++; leg.lower.write(leg.currentLower); }
-        else { leg.currentState = LIFT; leg.speed = 100; } // Switch to Upper Servo speed
+        else { leg.currentState = LIFT; leg.speed = 100; }
         break;
         
       case LIFT: // Upper servo 15 -> 0
@@ -59,18 +53,17 @@ void updateLeg(Leg &leg) {
   }
 }
 
+void setup() {
+  // Attach pins
+  legs[0].upper.attach(13); legs[0].lower.attach(12);
+  legs[1].upper.attach(11); legs[1].lower.attach(10);
+  legs[2].upper.attach(9);  legs[2].lower.attach(8);
+  legs[3].upper.attach(7);  legs[3].lower.attach(6);
+}
+
 void loop() {
-  // Every leg updates independently in every loop iteration
+  // Update all legs independently
   for (int i = 0; i < 4; i++) {
     updateLeg(legs[i]);
   }
 }
-
-//2:16: error: variable or field 'updateLeg' declared void
-
-
-//2:16: error: 'Leg' was not declared in this scope
-//2:21: error: 'leg' was not declared in this scope
-
-
-//2:21: note: suggested alternative: 'log'
