@@ -1,0 +1,94 @@
+#include <Servo.h>
+
+// 1. Define states
+enum State { INIT, PUSH, LIFT, FORWARD, PUT_DOWN };
+
+// 2. Define the Leg type
+typedef struct {
+  Servo upper;
+  Servo lower;
+  State currentState;
+  int currentUpper, currentLower;
+  unsigned long lastMoveTime;
+  unsigned long offsetDelay;
+  bool started;
+  int speed; 
+} Leg;
+
+// 3. THIS IS THE FIX: Explicitly declare the function prototype
+// This tells the compiler "updateLeg" uses "Leg" before it even starts reading the code
+void updateLeg(Leg &leg); 
+
+// 4. Create the objects
+Leg legs[4] = {
+  {Servo(), Servo(), INIT, 90, 90, 0, 1050, false, 45}, 
+  {Servo(), Servo(), INIT, 90, 90, 0, 5250, false, 45}, 
+  {Servo(), Servo(), INIT, 90, 90, 0, 4200, false, 45}, 
+  {Servo(), Servo(), INIT, 90, 90, 0, 0, false, 45}    
+};
+
+// 5. Function Definition
+void updateLeg(Leg &leg) {
+  if (!leg.started) {
+    if (millis() >= leg.offsetDelay) {
+      leg.started = true;
+      leg.lastMoveTime = millis();
+    } else {
+      return; 
+    }
+  }
+
+  unsigned long now = millis();
+  if (now - leg.lastMoveTime >= (unsigned long)leg.speed) {
+    leg.lastMoveTime = now;
+    
+    switch (leg.currentState) {
+      case INIT: 
+        if (leg.currentUpper > 15) { leg.currentUpper--; leg.upper.write(leg.currentUpper); }
+        if (leg.currentLower > 0)  { leg.currentLower--; leg.lower.write(leg.currentLower); }
+        if (leg.currentUpper <= 15 && leg.currentLower <= 0) { 
+           leg.currentState = PUSH; 
+        }
+        break;
+
+      case PUSH: 
+        if (leg.currentLower < 60) { leg.currentLower++; leg.lower.write(leg.currentLower); }
+        else { leg.currentState = LIFT; leg.speed = 100; }
+        break;
+        
+      case LIFT: 
+        if (leg.currentUpper > 0) { leg.currentUpper--; leg.upper.write(leg.currentUpper); }
+        else { leg.currentState = FORWARD; leg.speed = 45; }
+        break;
+        
+      case FORWARD: 
+        if (leg.currentLower > 0) { leg.currentLower--; leg.lower.write(leg.currentLower); }
+        else { leg.currentState = PUT_DOWN; leg.speed = 100; }
+        break;
+        
+      case PUT_DOWN: 
+        if (leg.currentUpper < 15) { leg.currentUpper++; leg.upper.write(leg.currentUpper); }
+        else { leg.currentState = PUSH; leg.speed = 45; }
+        break;
+    }
+  }
+}
+
+void setup() {
+  legs[0].upper.attach(13); legs[0].lower.attach(12);
+  legs[1].upper.attach(11); legs[1].lower.attach(10);
+  legs[2].upper.attach(9);  legs[2].lower.attach(8);
+  legs[3].upper.attach(7);  legs[3].lower.attach(6);
+
+  for(int i=0; i<4; i++) {
+    legs[i].upper.write(90);
+    legs[i].lower.write(90);
+  }
+  delay(2000); 
+}
+
+void loop() {
+  for (int i = 0; i < 4; i++) {
+    updateLeg(legs[i]);
+  }
+}
